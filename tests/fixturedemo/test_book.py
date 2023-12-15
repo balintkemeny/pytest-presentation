@@ -1,0 +1,40 @@
+import pytest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from fixturedemo import book
+
+
+@pytest.fixture()
+def book_dao():
+    with TemporaryDirectory() as db_dir:
+        db_path = Path(db_dir)
+        dao = book.BookDao(db_path)
+        yield dao
+        dao.close()
+
+
+def test__book_dao__is_empty_when_newly_created(book_dao):
+    assert book_dao.count() == 0
+
+
+def test_book_dao__inserts_first_book_to_id_1(book_dao):
+    id = book_dao.insert(book.Book(
+        author="J.R.R. Tolkien",
+        title="The Silmarillion",
+        genre="Mythopoesis",
+        read=True
+    ))
+
+    assert id == 1
+
+
+def test_book_dao__contains_one_book_when_one_book_is_inserted(book_dao):
+    book_dao.insert(book.Book(
+        author="J.R.R. Tolkien",
+        title="The Silmarillion",
+        genre="Mythopoesis",
+        read=True
+    ))
+
+    assert book_dao.count() == 1
